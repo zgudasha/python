@@ -11,6 +11,7 @@ class MyWidget(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.dialog = DialogAdd()
+        self.dialogRemove = QMessageBox()
 
         self.con = sqlite3.connect('films.db')
         self.cur = self.con.cursor()
@@ -22,7 +23,23 @@ class MyWidget(QMainWindow, Ui_MainWindow):
         self.list.itemClicked.connect(self.changeGenre) # по клику на элемент списка меняется self.genre
         self.btnSearch.clicked.connect(self.getFilms) # отбирает фильмы по критериям
         self.btnSave.clicked.connect(self.save) # сохранение изменений 
-        self.btnAdd.clicked.connect(self.openDialog) 
+        self.btnAdd.clicked.connect(self.openDialog) # добавление фильма
+        self.btnRemove.clicked.connect(self.remove) # удаление
+
+    def remove(self):
+        answer = self.dialogRemove.question(self, '', 'Удалить?', self.dialogRemove.Yes | self.dialogRemove.No)
+        indexes = self.table.selectionModel().selectedIndexes()
+        # print(len(indexes))
+        if answer == self.dialogRemove.Yes and indexes:
+            for i, index in enumerate(indexes):
+                # print(index.row(), index.column())
+                item = self.table.item(index.row(), index.column())
+                # print(item.text())
+                if item:
+                    label = ['id', 'title', 'year', 'genre', 'duration'][item.column()]
+                    self.cur.execute(f"""DELETE FROM "Films" WHERE {label} = "{item.text()}" """)
+                    self.table.removeRow(index.row())
+            self.con.commit()
 
     def save(self):
         for i in range(self.table.rowCount()):
@@ -70,7 +87,6 @@ class MyWidget(QMainWindow, Ui_MainWindow):
             """
         )
         self.con.commit()
-
 
     def changeGenre(self, item):
         title = item.text()
@@ -122,12 +138,10 @@ class MyWidget(QMainWindow, Ui_MainWindow):
         self.table.setRowCount(0)
         self.table.setColumnCount(0)
 
-
 class DialogAdd(QDialog, Ui_Form):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
