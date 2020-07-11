@@ -31,7 +31,7 @@ class MyWidget(QMainWindow, Ui_MainWindow):
         indexes = self.table.selectionModel().selectedIndexes()
         # print(len(indexes))
         if answer == self.dialogRemove.Yes and indexes:
-            for i, index in enumerate(indexes):
+            for index in indexes:
                 # print(index.row(), index.column())
                 item = self.table.item(index.row(), index.column())
                 # print(item.text())
